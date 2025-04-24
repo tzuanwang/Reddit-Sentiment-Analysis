@@ -1,0 +1,1 @@
+apache-airflow[pandas,postgres]==2.5.1

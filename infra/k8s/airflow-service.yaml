@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: airflow-web
+  namespace: reddit-sentiment
+spec:
+  selector:
+    app: airflow
+  ports:
+  - name: web
+    port: 8080
+    targetPort: 8080
+  type: ClusterIP

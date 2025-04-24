@@ -1,0 +1,33 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: reddit-ingress
+  namespace: reddit-sentiment
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  rules:
+  - host: sentiment.example.com
+    http:
+      paths:
+      - path: /airflow(/|$)(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: airflow-web
+            port:
+              number: 8080
+      - path: /api(/|$)(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: backend-svc
+            port:
+              number: 5000
+      - path: /(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: frontend-svc
+            port:
+              number: 8501

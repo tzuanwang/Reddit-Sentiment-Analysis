@@ -1,0 +1,7 @@
+[core]
+executor = LocalExecutor
+sql_alchemy_conn = postgresql+psycopg2://reddit_user:reddit_pass@postgres:5432/reddit_db
+load_examples = False
+
+[logging]
+logging_level = INFO
