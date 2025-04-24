@@ -40,7 +40,7 @@ with DAG(
     t1 = PythonOperator(
         task_id="fetch_reddit",
         python_callable=fetch_subreddit_data,
-        op_kwargs={"subreddit_name": "example_subreddit", "limit": 100}
+        op_kwargs={"subreddit_name": "CryptoCurrency", "limit": 100}
     )
     t2 = PythonOperator(
         task_id="predict_emotion",

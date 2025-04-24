@@ -12,7 +12,7 @@ echo "  • Airflow UI → localhost:8080"
 kubectl -n "${NAMESPACE}" port-forward deployment/airflow-webserver 8080:8080 &
 
 echo "  • Backend API → localhost:5000"
-kubectl -n "${NAMESPACE}" port-forward deployment/backend 5000:5000 &
+kubectl -n "${NAMESPACE}" port-forward deployment/backend 5001:5000 &
 
 echo "  • Streamlit → localhost:8501"
 kubectl -n "${NAMESPACE}" port-forward deployment/frontend 8501:8501 &
