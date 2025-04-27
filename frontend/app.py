@@ -31,22 +31,26 @@ def load_data():
 
 df = load_data()
 pivot = df.pivot(index="day", columns="emotion", values="count").fillna(0)
-st.line_chart(pivot)
 
-# find the day with the biggest shift
-diff = pivot.diff().abs().sum(axis=1).idxmax()
-st.markdown(f"**Biggest shift on:** {diff.date()}")
+if pivot.empty: # catch the error of empty database
+    st.warning("No data available yet! Please wait for data to be harvested.")
+else:
+    st.line_chart(pivot)
 
-top = pd.read_sql(
-    f"""
-    SELECT p.title, pr.emotion, pr.score
-    FROM predictions pr
-    JOIN posts p ON pr.post_id = p.id
-    WHERE date_trunc('day', to_timestamp(p.created_utc)) = '{diff.date()}'
-    ORDER BY pr.score DESC
-    LIMIT 1;
-    """,
-    engine
-)
-st.write("Post driving that shift:")
-st.write(top.iloc[0].title)
+    # find the day with the biggest shift
+    diff = pivot.diff().abs().sum(axis=1).idxmax()
+    st.markdown(f"**Biggest shift on:** {diff.date()}")
+
+    top = pd.read_sql(
+        f"""
+        SELECT p.title, pr.emotion, pr.score
+        FROM predictions pr
+        JOIN posts p ON pr.post_id = p.id
+        WHERE date_trunc('day', to_timestamp(p.created_utc)) = '{diff.date()}'
+        ORDER BY pr.score DESC
+        LIMIT 1;
+        """,
+        engine
+    )
+    st.write("Post driving that shift:")
+    st.write(top.iloc[0].title)

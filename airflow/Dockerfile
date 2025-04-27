@@ -1,5 +1,5 @@
 # 1. Start from the official Airflow image
-FROM apache/airflow:2.5.1-python3.9
+FROM apache/airflow:2.7.3-python3.9
 
 # 2. Switch to root only for OS-level package installs (if needed)
 USER root
@@ -12,10 +12,12 @@ RUN apt-get update \
 
 # 3. Copy your Python dependency list
 COPY requirements.txt /requirements.txt
+COPY backend-requirements.txt /backend-requirements.txt
 
 # 4. Switch to the airflow user for pip installs
 USER airflow
 RUN pip install --no-cache-dir -r /requirements.txt
+RUN pip install --no-cache-dir -r /backend-requirements.txt
 
 # 5. Copy over your DAG definitions
 COPY dags/ /opt/airflow/dags/

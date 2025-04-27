@@ -3,6 +3,7 @@ import os
 import praw
 from .db import SessionLocal
 from .models import Post, Comment
+from sqlalchemy.exc import IntegrityError # for try except
 
 def get_reddit():
     return praw.Reddit(
@@ -22,7 +23,11 @@ def fetch_subreddit_data(subreddit_name: str, limit: int = 100):
             title=submission.title,
             created_utc=int(submission.created_utc)
         )
-        session.merge(post)
+        try: # skip duplicates
+            session.merge(post)
+        except IntegrityError:
+            session.rollback()
+            print(f"Post {post.id} already exists. Skipping.")
 
         submission.comments.replace_more(limit=0)
         for c in submission.comments.list():
@@ -32,10 +37,19 @@ def fetch_subreddit_data(subreddit_name: str, limit: int = 100):
                 body=c.body,
                 created_utc=int(c.created_utc)
             )
-            session.merge(comment)
+            try:
+                session.merge(comment)
+            except IntegrityError:
+                session.rollback()
+                print(f"Comment {comment.id} already exists. Skipping.")
 
         fetched.append(post)
 
-    session.commit()
+    try:
+        session.commit()
+    except IntegrityError:
+        session.rollback()
+        print("Commit failed, rolling back.")
+
     session.close()
-    return fetched
+    # return fetched

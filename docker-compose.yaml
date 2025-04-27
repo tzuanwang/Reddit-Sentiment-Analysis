@@ -14,21 +14,22 @@ services:
 
   airflow:
     build: ./airflow
+    env_file:
+      - ./backend/.env   # reuse the same env file from backend
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://reddit_user:reddit_pass@postgres:5432/reddit_db
       AIRFLOW__CORE__LOAD_EXAMPLES: 'False'
+      PYTHONPATH: /opt/airflow # for usage of backend code
     volumes:
       - ./airflow/dags:/opt/airflow/dags
+      - ./backend:/opt/airflow/backend # for usage of backend code
     depends_on:
       - postgres
     ports:
       - "8080:8080"
     command: >
-      bash -c "airflow db init \
-               && airflow users create --username admin --password admin \
-                    --firstname Admin --lastname User --role Admin --email admin@example.com \
-               && exec airflow scheduler & exec airflow webserver"
+      bash -c "airflow db upgrade && airflow users create --username admin --password admin --firstname admin --lastname admin --role Admin --email admin@example.com && airflow scheduler & airflow webserver"
 
   backend:
     build: ./backend
