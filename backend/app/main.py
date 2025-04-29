@@ -1,6 +1,6 @@
 # backend/app/main.py
 from fastapi import FastAPI, HTTPException, Request
-from .sentiment import use_model
+from .sentiment import use_model, predict_label, full analysis
 from .db import SessionLocal, engine
 from .models import Base
 from .reddit_client import fetch_subreddit_data
@@ -23,8 +23,25 @@ def harvest(subreddit: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/predict")
-async def predict_sentiment(request: Request):
-    data = await request.json()
-    text = data.get("text", "")
-    result = use_model(text)
-    return result
+async def predict(request: Request):
+    try:
+        data = await request.json()
+        text = data.get("text", "")
+        if not text:
+            raise ValueError("Missing 'text' field.")
+        prediction = predict_label(text)
+        return {"prediction": prediction}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/analyze")
+async def analyze(request: Request):
+    try:
+        data = await request.json()
+        text = data.get("text", "")
+        if not text:
+            raise ValueError("Missing 'text' field.")
+        result = full_analysis(text)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))

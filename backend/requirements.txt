@@ -4,3 +4,9 @@ SQLAlchemy
 psycopg2-binary
 praw
 python-dotenv
+transformers
+pysentimiento
+spacy
+scipy
+sklearn
+torch
