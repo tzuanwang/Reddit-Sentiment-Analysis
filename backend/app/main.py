@@ -1,5 +1,6 @@
 # backend/app/main.py
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
+from .sentiment import use_model
 from .db import SessionLocal, engine
 from .models import Base
 from .reddit_client import fetch_subreddit_data
@@ -20,3 +21,10 @@ def harvest(subreddit: str):
         return {"harvested": len(posts)}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/predict")
+async def predict_sentiment(request: Request):
+    data = await request.json()
+    text = data.get("text", "")
+    result = use_model(text)
+    return result
