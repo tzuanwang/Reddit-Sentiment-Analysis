@@ -4,9 +4,9 @@ FROM apache/airflow:2.5.1-python3.9
 # 2. Switch to root only for OS-level package installs (if needed)
 USER root
 RUN apt-get update \
- && apt-get install --no-install-recommends -y \
-      gcc \
-      libpq-dev \
+    && apt-get install --no-install-recommends -y \   
+    gcc \
+    libpq-dev \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 

@@ -1,6 +1,13 @@
 FROM python:3.9-slim
 
 WORKDIR /app
+# Install build tools
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+       build-essential \
+       gcc \
+       python3-dev \
+    && rm -rf /var/lib/apt/lists/*
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 RUN python -m spacy download en_core_web_lg
@@ -8,4 +15,3 @@ RUN python -m spacy download en_core_web_lg
 COPY . .
 
 CMD ["gunicorn", "app.main:app", "--bind", "0.0.0.0:5000", "--workers", "2"]
-
