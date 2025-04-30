@@ -57,6 +57,10 @@ with st.sidebar.expander("Harvest Data", expanded=False):
                 if response.status_code == 200:
                     result = response.json()
                     st.success(f"Successfully harvested {result['harvested']} posts from r/{harvest_subreddit}")
+                    
+                    # Add this line to clear the cache when new data is harvested
+                    st.cache_data.clear()
+                    
                 else:
                     st.error(f"Failed to harvest data: {response.text}")
             except Exception as e:
@@ -240,7 +244,7 @@ def create_trend_chart(df, title):
     return chart
 
 # Function to find examples for a category
-@st.cache_data(ttl=600)
+@st.cache_data(ttl=10)
 def get_examples(category_type, category, limit=5):
     try:
         response = requests.get(
@@ -271,6 +275,13 @@ if selected_analysis == "Sentiment":
     
     # Show examples for each sentiment category
     st.header("Example Posts by Sentiment")
+    col1, col2 = st.columns([0.9, 0.1])
+    with col1:
+        st.write("Latest examples from analyzed posts")
+    with col2:
+        if st.button("↻", help="Refresh examples"):
+            st.cache_data.clear()
+            st.rerun()
     # Get unique categories
     if not df.empty:
         categories = df["category"].unique()
