@@ -6,6 +6,7 @@ from transformers import AutoModelForSequenceClassification, AutoTokenizer, Auto
 from scipy.special import softmax
 from sklearn.preprocessing import StandardScaler
 from pysentimiento import create_analyzer
+from datetime import datetime, timezone
 
 # Load sentiment model
 SENTIMENT_MODEL = "cardiffnlp/twitter-roberta-base-sentiment-latest"
@@ -76,3 +77,14 @@ def full_analysis(text):
         "emotion": emotion_analysis(text),
         "hate": hate_analysis(text)
     }
+
+def save_to_csv(text: str, result: dict, csv_path="sentiment_logs.csv"):
+    flat = {
+        "text": text,
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+    for category in ["sentiment", "emotion", "hate"]:
+        for label, score in result.get(category, {}).items():
+            flat[f"{category}_{label}"] = score
+    df = pd.DataFrame([flat])
+    df.to_csv(csv_path, mode='a', header=not pd.io.common.file_exists(csv_path), index=False)

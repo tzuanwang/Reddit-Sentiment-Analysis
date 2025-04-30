@@ -46,5 +46,14 @@ services:
     ports:
       - "8501:8501"
 
+  dashboard:
+    build: ./dashboard
+    ports:
+      - "8502:8501"  # Avoid conflict with frontend Streamlit
+    depends_on:
+      - backend
+    environment:
+      - STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
+
 volumes:
   pgdata:

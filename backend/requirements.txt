@@ -10,3 +10,7 @@ spacy
 scipy
 sklearn
 torch
+streamlit
+requests
+pandas
+matplotlib
