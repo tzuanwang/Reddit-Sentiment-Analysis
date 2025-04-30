@@ -92,7 +92,7 @@ selected_group = st.sidebar.selectbox(
 group_by = group_by_options[selected_group]
 
 # Analysis type
-analysis_types = ["Sentiment", "Emotion", "Hate Speech"]
+analysis_types = ["Sentiment", "Emotion"]
 selected_analysis = st.sidebar.radio("Analysis type", analysis_types)
 
 # Test text analysis
