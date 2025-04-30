@@ -36,13 +36,26 @@ def debug_endpoint():
 
 @app.post("/harvest/{subreddit}")
 def harvest(subreddit: str, limit: int = Query(100, ge=1, le=500)):
-    """Harvest posts and comments from a subreddit"""
+    """Harvest posts and comments from a subreddit and automatically analyze them"""
     try:
+        # Harvest the posts
         posts = fetch_subreddit_data(subreddit, limit=limit)
-        return {"harvested": len(posts), "subreddit": subreddit}
+        
+        # Analyze each post right after harvesting
+        db = SessionLocal()
+        try:
+            for post in posts:
+                try:
+                    analyze_post(post.id, db)
+                except Exception as e:
+                    print(f"Error analyzing post {post.id}: {str(e)}")
+        finally:
+            db.close()
+        
+        return {"harvested": len(posts), "subreddit": subreddit, "analyzed": True}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
+    
 @app.post("/analyze/text")
 def analyze_single_text(text: str):
     """Analyze a single text with all sentiment models"""
