@@ -10,7 +10,8 @@ from datetime import datetime, timedelta
 from sqlalchemy import create_engine
 
 # Configuration
-API_URL = os.getenv("BACKEND_URL", "http://backend:5001")
+#API_URL = os.getenv("BACKEND_URL", "http://backend:5000")
+API_URL = "http://backend:5000"  # Hardcode for testing
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
     "postgresql+psycopg2://reddit_user:reddit_pass@postgres:5432/reddit_db"
@@ -24,6 +25,15 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+try:
+    debug_response = requests.get(f"{API_URL}/debug", timeout=5)
+    if debug_response.status_code == 200:
+        st.sidebar.success("Backend connection successful!")
+    else:
+        st.sidebar.error(f"Backend returned status code: {debug_response.status_code}")
+except Exception as e:
+    st.sidebar.error(f"Backend connection failed: {str(e)}")
+
 
 # App title
 st.title("📊 Reddit Sentiment Analyzer")
@@ -142,27 +152,38 @@ def load_trend_data(days):
         return None
 
 # Function to load stats data
+
 @st.cache_data(ttl=600)
 def load_stats_data(start_date, end_date, group_by, stats_type):
-    try:
-        response = requests.get(
-            f"{API_URL}/stats/{stats_type}",
-            params={
-                "start_date": start_date,
-                "end_date": end_date,
-                "group_by": group_by
-            },
-            timeout=30
-        )
-        if response.status_code == 200:
-            return response.json()
-        else:
-            st.error(f"Failed to load {stats_type} stats: {response.text}")
-            return None
-    except Exception as e:
-        st.error(f"Error loading {stats_type} stats: {str(e)}")
-        return None
-
+    max_retries = 3
+    retry_delay = 1  # seconds
+    
+    for attempt in range(max_retries):
+        try:
+            st.sidebar.info(f"Connecting to backend at {API_URL}/stats/{stats_type} (attempt {attempt+1})")
+            response = requests.get(
+                f"{API_URL}/stats/{stats_type}",
+                params={
+                    "start_date": start_date,
+                    "end_date": end_date,
+                    "group_by": group_by
+                },
+                timeout=30
+            )
+            if response.status_code == 200:
+                return response.json()
+            else:
+                st.sidebar.error(f"Failed with status code: {response.status_code}, response: {response.text}")
+                return None
+        except Exception as e:
+            st.sidebar.error(f"Error on attempt {attempt+1}: {str(e)}")
+            if attempt < max_retries - 1:
+                time.sleep(retry_delay)
+                retry_delay *= 2  # Exponential backoff
+            else:
+                st.error(f"Error loading {stats_type} stats after {max_retries} attempts: {str(e)}")
+                return None
+            
 # Function to prepare chart data
 def prepare_chart_data(stats_data):
     if not stats_data:

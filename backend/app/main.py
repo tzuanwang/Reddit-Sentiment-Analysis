@@ -1,6 +1,7 @@
 # backend/app/main.py
 from fastapi import FastAPI, HTTPException, Depends, Query
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 from datetime import datetime
 from typing import Optional, List
 import time
@@ -27,6 +28,11 @@ def get_db():
 @app.get("/health")
 def health_check():
     return {"status": "ok", "timestamp": datetime.utcnow().isoformat()}
+
+@app.get("/debug")
+def debug_endpoint():
+    """Simple endpoint for debugging connectivity"""
+    return {"status": "ok", "message": "Backend is reachable"}
 
 @app.post("/harvest/{subreddit}")
 def harvest(subreddit: str, limit: int = Query(100, ge=1, le=500)):
@@ -143,129 +149,73 @@ def get_sentiment_stats(
     group_by: str = Query("day", regex="^(hour|day|week|month)$")
 ):
     """Get sentiment statistics aggregated by time period"""
-    # SQL for time grouping based on the selected period
-    time_group = {
-        "hour": "date_trunc('hour', to_timestamp(ps.created_utc))",
-        "day": "date_trunc('day', to_timestamp(ps.created_utc))",
-        "week": "date_trunc('week', to_timestamp(ps.created_utc))",
-        "month": "date_trunc('month', to_timestamp(ps.created_utc))",
-    }[group_by]
-    
-    # Build the SQL query
-    query = f"""
-    SELECT 
-        {time_group} AS time_period,
-        ps.top_sentiment AS sentiment,
-        COUNT(*) AS count
-    FROM 
-        post_sentiments ps
-    """
-    
-    # Add filters
-    conditions = []
-    params = {}
-    
-    if start_date:
-        conditions.append("ps.created_utc >= :start_date")
-        params["start_date"] = start_date
-    
-    if end_date:
-        conditions.append("ps.created_utc <= :end_date")
-        params["end_date"] = end_date
-    
-    if conditions:
-        query += " WHERE " + " AND ".join(conditions)
-    
-    # Add grouping and ordering
-    query += """
-    GROUP BY 
-        time_period, ps.top_sentiment
-    ORDER BY 
-        time_period, ps.top_sentiment
-    """
-    
-    # Execute the query
-    result = db.execute(query, params).fetchall()
-    
-    # Format the results
-    formatted = {}
-    for row in result:
-        time_str = row[0].isoformat()
-        sentiment = row[1]
-        count = row[2]
+    try:
+        # SQL for time grouping based on the selected period
+        time_group = {
+            "hour": "date_trunc('hour', to_timestamp(ps.created_utc))",
+            "day": "date_trunc('day', to_timestamp(ps.created_utc))",
+            "week": "date_trunc('week', to_timestamp(ps.created_utc))",
+            "month": "date_trunc('month', to_timestamp(ps.created_utc))",
+        }[group_by]
         
-        if time_str not in formatted:
-            formatted[time_str] = {}
+        # Build the SQL query
+        query_str = f"""
+        SELECT 
+            {time_group} AS time_period,
+            ps.top_sentiment AS sentiment,
+            COUNT(*) AS count
+        FROM 
+            post_sentiments ps
+        """
         
-        formatted[time_str][sentiment] = count
-    
-    return formatted
-
-@app.get("/stats/emotion")
-def get_emotion_stats(
-    db: Session = Depends(get_db),
-    start_date: Optional[int] = None,
-    end_date: Optional[int] = None,
-    group_by: str = Query("day", regex="^(hour|day|week|month)$")
-):
-    """Get emotion statistics aggregated by time period"""
-    # SQL for time grouping based on the selected period
-    time_group = {
-        "hour": "date_trunc('hour', to_timestamp(ps.created_utc))",
-        "day": "date_trunc('day', to_timestamp(ps.created_utc))",
-        "week": "date_trunc('week', to_timestamp(ps.created_utc))",
-        "month": "date_trunc('month', to_timestamp(ps.created_utc))",
-    }[group_by]
-    
-    # Build the SQL query
-    query = f"""
-    SELECT 
-        {time_group} AS time_period,
-        ps.top_emotion AS emotion,
-        COUNT(*) AS count
-    FROM 
-        post_sentiments ps
-    """
-    
-    # Add filters
-    conditions = []
-    params = {}
-    
-    if start_date:
-        conditions.append("ps.created_utc >= :start_date")
-        params["start_date"] = start_date
-    
-    if end_date:
-        conditions.append("ps.created_utc <= :end_date")
-        params["end_date"] = end_date
-    
-    if conditions:
-        query += " WHERE " + " AND ".join(conditions)
-    
-    # Add grouping and ordering
-    query += """
-    GROUP BY 
-        time_period, ps.top_emotion
-    ORDER BY 
-        time_period, ps.top_emotion
-    """
-    
-    # Execute the query
-    result = db.execute(query, params).fetchall()
-    
-    # Format the results
-    formatted = {}
-    for row in result:
-        time_str = row[0].isoformat()
-        emotion = row[1]
-        count = row[2]
+        # Add filters
+        conditions = []
+        params = {}
         
-        if time_str not in formatted:
-            formatted[time_str] = {}
+        if start_date:
+            conditions.append("ps.created_utc >= :start_date")
+            params["start_date"] = start_date
         
-        formatted[time_str][emotion] = count
-    
-    return formatted
+        if end_date:
+            conditions.append("ps.created_utc <= :end_date")
+            params["end_date"] = end_date
+        
+        if conditions:
+            query_str += " WHERE " + " AND ".join(conditions)
+        
+        # Add grouping and ordering
+        query_str += """
+        GROUP BY 
+            time_period, ps.top_sentiment
+        ORDER BY 
+            time_period, ps.top_sentiment
+        """
+        
+        # Create a text object from the query string
+        query = text(query_str)
+        
+        # Execute the query
+        result = db.execute(query, params).fetchall()
+        
+        # Format the results
+        formatted = {}
+        for row in result:
+            time_str = row[0].isoformat()
+            sentiment = row[1]
+            count = row[2]
+            
+            if time_str not in formatted:
+                formatted[time_str] = {}
+            
+            formatted[time_str][sentiment] = count
+        
+        return formatted
+        
+    except Exception as e:
+        print(f"Error in sentiment stats: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Error fetching sentiment stats: {str(e)}")
 
 @app.get("/examples/{category_type}/{category}")
 def get_examples(

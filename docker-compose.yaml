@@ -26,12 +26,16 @@ services:
         condition: service_healthy
     ports:
       - "5001:5000"
-    command: uvicorn app:app --host 0.0.0.0 --port 5000 --reload
-    volumes:
-      - ./backend:/app
+    #command: uvicorn app.main:app --host 0.0.0.0 --port 5000 --reload
+    #volumes:
+    #  - ./backend:/app
     environment:
       - DATABASE_URL=postgresql+psycopg2://reddit_user:reddit_pass@postgres:5432/reddit_db
-
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
   frontend:
     build: ./frontend
     depends_on:
