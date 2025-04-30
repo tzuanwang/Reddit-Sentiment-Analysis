@@ -41,7 +41,7 @@ services:
     volumes:
       - ./frontend:/app
     environment:
-      - API_URL=http://backend:5000
+      - BACKEND_URL=http://backend:5000
 
   # Optional: only enable if needed
   airflow:
