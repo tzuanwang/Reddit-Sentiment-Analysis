@@ -8,9 +8,9 @@ transformers
 pysentimiento
 spacy
 scipy
-sklearn
 torch
 streamlit
 requests
 pandas
 matplotlib
+scikit-learn
