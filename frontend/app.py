@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 from sqlalchemy import create_engine
 
 # Configuration
-API_URL = os.getenv("API_URL", "http://backend:5000")
+API_URL = os.getenv("BACKEND_URL", "http://backend:5001")
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
     "postgresql+psycopg2://reddit_user:reddit_pass@postgres:5432/reddit_db"

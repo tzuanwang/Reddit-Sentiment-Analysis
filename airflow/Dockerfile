@@ -17,15 +17,16 @@ COPY requirements.txt /requirements.txt
 # 4. Switch to the airflow user for pip installs
 USER airflow
 
-# Install dependencies with specific approach to avoid compilation issues
+# Install dependencies with improved approach
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir wheel setuptools && \
-    # Install spaCy separately first
-    pip install --no-cache-dir spacy>=3.2.0 && \
-    # Then download the medium model to save space
-    python -m spacy download en_core_web_md && \
-    # Then install remaining requirements
-    pip install --no-cache-dir -r /requirements.txt && \
+    # Install packages in a specific order to avoid conflicts
+    pip install --no-cache-dir --prefer-binary numpy==1.24.3 && \
+    pip install --no-cache-dir --prefer-binary spacy==3.5.3 && \
+    # Download the language model - using smaller model for faster startup
+    python -m spacy download en_core_web_sm && \
+    # Install remaining requirements
+    pip install --no-cache-dir --prefer-binary -r /requirements.txt && \
     # Download NLTK data
     python -c "import nltk; nltk.download('vader_lexicon')"
 
