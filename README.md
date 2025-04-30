@@ -13,7 +13,7 @@ A comprehensive system for harvesting and analyzing sentiment data from Reddit p
 
 ## 🚀 Features
 
-- 📊 **Multi-dimensional Sentiment Analysis**: Analyze posts and comments for sentiment, emotion, and hate speech detection
+- 📊 **Multi-dimensional Sentiment Analysis**: Analyze posts and comments for sentiment and emotion detection
 - 🤖 **Advanced NLP Processing**: Utilizes RoBERTa, NLTK, spaCy and other NLP techniques
 - 📈 **Interactive Dashboard**: Real-time visualization of sentiment trends and statistics
 - ⏱️ **Automated Data Collection**: Scheduled harvesting of Reddit data with Apache Airflow
@@ -76,7 +76,6 @@ python scripts/init_sentiment.py
 
 - **Sentiment Analysis**: Classifies content as positive, negative, or neutral
 - **Emotion Detection**: Identifies joy, sadness, anger, fear, surprise, and other emotions
-- **Hate Speech Detection**: Flags potentially harmful content
 - **Trend Analysis**: Track sentiment changes over time
 - **Example Extraction**: Find representative posts for each sentiment category
 
