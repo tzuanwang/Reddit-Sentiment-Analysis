@@ -226,20 +226,45 @@ def create_trend_chart(df, title):
         var_name="category",
         value_name="count"
     )
-    
+    #color_scale = {
+     #   # Sentiment colors
+     #   'positive': '#4CAF50',  # Green
+     #   'negative': '#F44336',  # Red
+      #  'neutral': '#2196F3',   # Blue
+    #}
+    color_scale = alt.Scale(
+    domain=['positive', 'negative', 'neutral', 'joy', 'sadness', 'anger', 'fear', 'surprise', 'other'],
+    range=['#4CAF50', '#F44336', '#2196F3', '#FFEB3B', '#3F51B5', '#FF5722', '#9C27B0', '#00BCD4', '#607D8B']
+    )
     # Create stacked area chart with opacity (semi-transparency)
-    chart = alt.Chart(melted_df).mark_area(
-        opacity=0.7,  
-        line=True     
-    ).encode(
+    chart = alt.Chart(melted_df).encode(
         x=alt.X("date:T", title="Date"),
-        y=alt.Y("count:Q", title="Count", stack=True),
-        color=alt.Color("category:N", title="Category"),
+        #y=alt.Y("count:Q", title="Count", stack=True),
+        #color=alt.Color("category:N", 
+                        #scale=alt.Scale(scheme='pastel'), 
+                      # scale=alt.Scale(domain=list(color_scale.keys()), 
+                       #               range=list(color_scale.values())),
+                      # title="Category"),
         tooltip=["date:T", "category:N", "count:Q"]
     ).properties(
         title=title,
         height=400
-    ).interactive()
+    )
+    layers = []
+    for category in pivot_df.columns[1:]:  # Skip the date column
+        layer = chart.transform_filter(
+            alt.datum.category == category
+        ).mark_area(
+            opacity=0.2,
+            line=True,
+            strokeWidth=1
+        ).encode(
+            y=alt.Y("count:Q", title="Count"),
+            color=alt.value(color_scale.range[color_scale.domain.index(category) 
+                                            if category in color_scale.domain else 0])
+        )
+        layers.append(layer)
+    chart = alt.layer(*layers).interactive()
     
     return chart
 
