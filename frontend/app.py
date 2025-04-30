@@ -223,8 +223,11 @@ def create_trend_chart(df, title):
         value_name="count"
     )
     
-    # Create stacked area chart
-    chart = alt.Chart(melted_df).mark_area().encode(
+    # Create stacked area chart with opacity (semi-transparency)
+    chart = alt.Chart(melted_df).mark_area(
+        opacity=0.7,  
+        line=True     
+    ).encode(
         x=alt.X("date:T", title="Date"),
         y=alt.Y("count:Q", title="Count", stack=True),
         color=alt.Color("category:N", title="Category"),

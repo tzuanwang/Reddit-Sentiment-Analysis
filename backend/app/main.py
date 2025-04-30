@@ -43,16 +43,25 @@ def harvest(subreddit: str, limit: int = Query(100, ge=1, le=500)):
         
         # Analyze each post right after harvesting
         db = SessionLocal()
+        analyzed_count = 0
         try:
             for post in posts:
                 try:
-                    analyze_post(post.id, db)
+                    # analyze_post handles all three types of analysis
+                    result = analyze_post(post.id, db)
+                    analyzed_count += 1
+                    print(f"Analyzed post {post.id}: sentiment={result['sentiment']}, emotion={result['emotion']}")
                 except Exception as e:
                     print(f"Error analyzing post {post.id}: {str(e)}")
         finally:
             db.close()
         
-        return {"harvested": len(posts), "subreddit": subreddit, "analyzed": True}
+        return {
+            "harvested": len(posts), 
+            "subreddit": subreddit, 
+            "analyzed": analyzed_count,
+            "message": f"Successfully harvested and analyzed {analyzed_count} posts from r/{subreddit}"
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
