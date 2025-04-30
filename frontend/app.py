@@ -37,7 +37,7 @@ except Exception as e:
 
 # App title
 st.title("📊 Reddit Sentiment Analyzer")
-st.markdown("Analyze sentiment, emotions, and hate speech in Reddit posts and comments")
+st.markdown("Analyze sentiment and emotions in Reddit posts and comments")
 
 # Sidebar
 st.sidebar.header("Controls")
