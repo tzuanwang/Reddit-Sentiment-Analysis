@@ -58,14 +58,15 @@ with st.sidebar.expander("Harvest Data", expanded=False):
                     result = response.json()
                     st.success(f"Successfully harvested {result['harvested']} posts from r/{harvest_subreddit}")
                     
-                    # Add this line to clear the cache when new data is harvested
-                    st.cache_data.clear()
+                    # Store timestamp of this harvest
+                    st.session_state.last_harvest_time = int(time.time())
                     
+                    # Clear caches
+                    st.cache_data.clear()
                 else:
                     st.error(f"Failed to harvest data: {response.text}")
             except Exception as e:
                 st.error(f"Error: {str(e)}")
-
 # Date range filter
 st.sidebar.header("Date Range")
 days_options = {
@@ -258,12 +259,24 @@ def create_trend_chart(df, title):
 
 
 # Function to find examples for a category
-@st.cache_data(ttl=10)
-def get_examples(category_type, category, limit=5):
+@st.cache_data(ttl=5)  # Short cache time to ensure fresh data
+def get_examples(category_type, category, limit=5, min_timestamp=None):
+    """Get examples of posts with filtering by timestamp or subreddit"""
     try:
+        # Build parameters with optional filters
+        params = {"limit": limit}
+        
+        # Add timestamp filtering if provided
+        if min_timestamp:
+            params["min_timestamp"] = min_timestamp
+            
+        # Get the most recent harvest timestamp
+        if 'last_harvest_time' in st.session_state:
+            params["min_timestamp"] = st.session_state.last_harvest_time
+            
         response = requests.get(
             f"{API_URL}/examples/{category_type}/{category}",
-            params={"limit": limit},
+            params=params,
             timeout=30
         )
         if response.status_code == 200:

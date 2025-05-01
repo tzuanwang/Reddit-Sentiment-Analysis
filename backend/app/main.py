@@ -244,7 +244,8 @@ def get_examples(
     category_type: str,
     category: str,
     db: Session = Depends(get_db),
-    limit: int = Query(5, ge=1, le=20)
+    limit: int = Query(5, ge=1, le=20),
+    min_timestamp: Optional[int] = None
 ):
     """Get example posts/comments for a specific sentiment/emotion category"""
     if category_type not in ["sentiment", "emotion", "hate_speech"]:
@@ -259,21 +260,19 @@ def get_examples(
     column = column_map[category_type]
     
     # Query for posts
-    posts = db.query(Post).join(
+    post_query = db.query(Post).join(
         PostSentiment
     ).filter(
         getattr(PostSentiment, column) == category
-    ).order_by(
-        Post.created_utc.desc()
-    ).limit(limit).all()
+    )
     
-    # Query for comments
-    comments = db.query(Comment).join(
-        CommentSentiment
-    ).filter(
-        getattr(CommentSentiment, column) == category
-    ).order_by(
-        Comment.created_utc.desc()
+    # Apply timestamp filter if provided
+    if min_timestamp:
+        post_query = post_query.filter(Post.created_utc >= min_timestamp)
+    
+    # Get posts with ordering and limit
+    posts = post_query.order_by(
+        Post.created_utc.desc()
     ).limit(limit).all()
     
     return {
