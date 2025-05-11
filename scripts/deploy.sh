@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Usage: ./scripts/deploy.sh <GCP_PROJECT_ID> <K8S_NAMESPACE>
-PROJECT_ID="${1:-my-gcp-project}"
+PROJECT_ID="${1:-cml-final-project}"
 NAMESPACE="${2:-reddit-sentiment}"
 
 echo "🔐 Authenticating Docker with GCR…"
@@ -12,8 +12,7 @@ echo "📦 Building & pushing images to gcr.io/${PROJECT_ID}…"
 for SERVICE in backend airflow frontend; do
   IMAGE="gcr.io/${PROJECT_ID}/${SERVICE}:latest"
   echo "  • ${SERVICE} → ${IMAGE}"
-  docker build -t "${IMAGE}" "./${SERVICE}"
-  docker push "${IMAGE}"
+  docker buildx build --platform linux/amd64 -t "${IMAGE}" "./${SERVICE}" --push
 done
 
 echo "🚀 Applying Kubernetes manifests to namespace ${NAMESPACE}…"

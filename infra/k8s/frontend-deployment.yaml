@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: gcr.io/YOUR_PROJECT/frontend:latest
+        image: gcr.io/cml-final-project/frontend:latest
         ports:
         - containerPort: 8501
         envFrom:

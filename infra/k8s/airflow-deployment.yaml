@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: scheduler
-        image: gcr.io/YOUR_PROJECT/airflow:latest
+        image: gcr.io/cml-final-project/airflow:latest
         args: ["airflow", "scheduler"]
         env:
         - name: AIRFLOW__CORE__EXECUTOR
@@ -31,7 +31,7 @@ spec:
           subPath: airflow.cfg
 
       - name: webserver
-        image: gcr.io/YOUR_PROJECT/airflow:latest
+        image: gcr.io/cml-final-project/airflow:latest
         args: ["airflow", "webserver"]
         ports:
         - containerPort: 8080

@@ -36,9 +36,11 @@ spec:
             secretKeyRef:
               name: reddit-sentiment-secret
               key: DB_NAME
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata   # Added accordingly
         volumeMounts:
         - name: postgres-data
-          mountPath: /var/lib/postgresql/data
+          mountPath: /var/lib/postgresql/data/pgdata   # Updated path
   volumeClaimTemplates:
   - metadata:
       name: postgres-data
