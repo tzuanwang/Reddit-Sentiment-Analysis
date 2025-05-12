@@ -37,15 +37,23 @@ spec:
               name: reddit-sentiment-secret
               key: DB_NAME
         - name: PGDATA
-          value: /var/lib/postgresql/data/pgdata   # Added accordingly
+          value: /var/lib/postgresql/data/pgdata/data   # support lost and found
         volumeMounts:
         - name: postgres-data
-          mountPath: /var/lib/postgresql/data/pgdata   # Updated path
+          mountPath: /var/lib/postgresql/data/pgdata   # Updated path, add more layer
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 250m
+            memory: 512Mi
   volumeClaimTemplates:
   - metadata:
       name: postgres-data
     spec:
       accessModes: ["ReadWriteOnce"]
+      storageClassName: standard
       resources:
         requests:
           storage: 10Gi
